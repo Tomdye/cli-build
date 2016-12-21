@@ -5,6 +5,12 @@ const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer-sunburst').BundleAnalyzerPlugin;
 const path = require('path');
 const basePath = process.cwd();
+const cssModuleIdent = '[name]__[local]__[hash:base64:5]';
+const stylusLoader = ExtractTextPlugin.extract([ 'css-loader?sourceMap', 'stylus-loader?sourceMap' ]);
+const stylusModuleLoader = ExtractTextPlugin.extract([
+	`css-loader?modules&sourceMap&localIdentName=${cssModuleIdent}`,
+	'stylus-loader?sourceMap'
+]);
 
 module.exports = function (args) {
 	args = args || {};
@@ -62,8 +68,10 @@ module.exports = function (args) {
 				{ test: /\.js?$/, loader: 'umd-compat-loader' },
 				{ test: /\.html$/, loader: 'html' },
 				{ test: /\.(jpe|jpg|png|woff|woff2|eot|ttf|svg)(\?.*$|$)/, loader: 'file?name=[path][name].[hash:6].[ext]' },
-				{ test: /\.styl$/, loader: ExtractTextPlugin.extract(['css-loader?sourceMap', 'stylus-loader']) },
-				{ test: /\.css$/, loader: 'style-loader!css-loader?modules' },
+				{ test: /\.styl$/, exclude: /\.module\.styl$/, loader: stylusLoader },
+				{ test: /\.module\.styl$/, loader: stylusModuleLoader },
+				{ test: /\.module\.styl\.json$/, loader: 'json-css-module-loader' },
+				{ test: /\.module\.css$/, loader: ExtractTextPlugin.extract([ 'css-loader?sourceMap' ]) }
 			]
 		},
 		plugins: plugins,
