@@ -48,7 +48,7 @@ module.exports = function (args) {
 		devtool: 'source-map',
 		resolve: {
 			root: [ basePath ],
-			extensions: ['', '.ts', '.tsx', '.js'],
+			extensions: ['', '.ts', '.tsx', '.js', '.json'],
 			alias: {
 				rxjs: '@reactivex/rxjs/dist/amd'
 			}
