@@ -3,11 +3,14 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer-sunburst').BundleAnalyzerPlugin;
+const postcssImport = require('postcss-import');
+const postcssCssNext = require('postcss-cssnext');
 const path = require('path');
 const basePath = process.cwd();
 const cssModuleIdent = '[name]__[local]__[hash:base64:5]';
 const cssModuleLoader = ExtractTextPlugin.extract([
-	`css-loader?modules&sourceMap&localIdentName=${cssModuleIdent}`
+	`css-loader?modules&sourceMap&localIdentName=${cssModuleIdent}&importLoaders=1`,
+	'postcss-loader'
 ]);
 
 module.exports = function (args) {
@@ -46,7 +49,7 @@ module.exports = function (args) {
 		devtool: 'source-map',
 		resolve: {
 			root: [ basePath ],
-			extensions: ['', '.ts', '.tsx', '.js', '.json'],
+			extensions: ['', '.ts', '.tsx', '.js', '.css.json'],
 			alias: {
 				rxjs: '@reactivex/rxjs/dist/amd'
 			}
@@ -71,6 +74,22 @@ module.exports = function (args) {
 				{ test: /\.css\.json$/, exclude: /src[\\\/].*/, loader: 'json-css-module-loader' }
 			]
 		},
+		postcss: [
+			postcssImport,
+			postcssCssNext({
+				features: {
+					customProperties: {
+						preserve: 'computed'
+					},
+					autoprefixer: {
+						browsers: [
+							'last 2 versions',
+							'ie >= 10'
+						]
+					}
+				}
+			})
+		],
 		plugins: plugins,
 		output: {
 			path: path.resolve('./dist'),
@@ -78,12 +97,3 @@ module.exports = function (args) {
 		}
 	};
 }
-
-	// { test: /src[\\\/].*\.ts?$/, loader: 'umd-compat-loader!ts-loader' },
-	// { test: /\.js?$/, loader: 'umd-compat-loader' },
-	// { test: /\.html$/, loader: 'html' },
-	// { test: /\.(jpe|jpg|png|woff|woff2|eot|ttf|svg)(\?.*$|$)/, loader: 'file?name=[path][name].[hash:6].[ext]' },
-	// { test: /\.styl$/, exclude: /\.module\.styl$/, loader: stylusLoader },
-	// { test: /\.module\.styl$/, loader: stylusModuleLoader },
-	// { test: /\.module\.styl\.json$/, loader: 'json-css-module-loader' },
-	// { test: /\.module\.css$/, loader: ExtractTextPlugin.extract([ 'css-loader?sourceMap' ]) }
