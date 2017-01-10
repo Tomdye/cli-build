@@ -78,9 +78,6 @@ module.exports = function (args) {
 			postcssImport,
 			postcssCssNext({
 				features: {
-					customProperties: {
-						preserve: 'computed'
-					},
 					autoprefixer: {
 						browsers: [
 							'last 2 versions',
