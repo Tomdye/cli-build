@@ -7,10 +7,11 @@ const postcssImport = require('postcss-import');
 const postcssCssNext = require('postcss-cssnext');
 const path = require('path');
 const basePath = process.cwd();
+const cssLoader = ExtractTextPlugin.extract([ 'css-loader?sourceMap' ]);
 const cssModuleIdent = '[name]__[local]__[hash:base64:5]';
 const cssModuleLoader = ExtractTextPlugin.extract([
 	`css-loader?modules&sourceMap&localIdentName=${cssModuleIdent}&importLoaders=1`,
-	'postcss-loader'
+	'postcss-loader?sourceMap'
 ]);
 
 module.exports = function (args) {
@@ -70,7 +71,7 @@ module.exports = function (args) {
 				{ test: /\.html$/, loader: 'html' },
 				{ test: /\.(jpe|jpg|png|woff|woff2|eot|ttf|svg)(\?.*$|$)/, loader: 'file?name=[path][name].[hash:6].[ext]' },
 				{ test: /src[\\\/].*\.css?$/, loader: cssModuleLoader },
-				{ test: /\.css$/, exclude: /src[\\\/].*/, loader: ExtractTextPlugin.extract([ 'css-loader?sourceMap' ]) },
+				{ test: /\.css$/, exclude: /src[\\\/].*/, loader: cssLoader },
 				{ test: /\.css\.json$/, exclude: /src[\\\/].*/, loader: 'json-css-module-loader' }
 			]
 		},
