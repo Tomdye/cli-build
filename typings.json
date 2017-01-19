@@ -4,6 +4,7 @@
 		"dojo2-dev": "github:dojo/typings/custom/dev/dev.d.ts#288d3a9868194f0e1ad6687371dffd1d96cb39a1"
 	},
 	"dependencies": {
+		"chalk": "registry:npm/chalk#1.1.1+20160812215109",
 		"yargs": "registry:npm/yargs#5.0.0+20160817153026"
 	}
 }

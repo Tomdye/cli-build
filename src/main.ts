@@ -3,6 +3,11 @@ import { Argv } from 'yargs';
 const webpack: any = require('webpack');
 const WebpackDevServer: any = require('webpack-dev-server');
 const config: any = require('./webpack.config');
+const DtsCreator = require('typed-css-modules');
+import * as path from 'path';
+import * as chalk from 'chalk';
+const gaze = require('gaze');
+const glob = require('glob');
 
 interface BuildArgs extends Argv {
 	locale: string;
@@ -10,6 +15,7 @@ interface BuildArgs extends Argv {
 	supportedLocales: string | string[];
 	watch: boolean;
 	port: number;
+	cssModules: boolean;
 }
 
 interface WebpackOptions {
@@ -19,6 +25,23 @@ interface WebpackOptions {
 		chunks: boolean
 	};
 }
+
+const rootDir = process.cwd();
+const searchDir = 'src';
+const filesPattern = path.join(searchDir, '**/*.css');
+const creator = new DtsCreator( {rootDir, searchDir });
+
+function writeFile(file: string, watch: boolean = false) {
+	creator.create(file, null, watch)
+		.then((content: any) => content.writeFile())
+		.then((content: any) => {
+			console.log('Wrote ' + chalk.green(content.outputFilePath));
+			content.messageList.forEach((message: string) => {
+				console.warn(chalk.yellow('[Warn] ' + message));
+			});
+		})
+		.catch((reason: any) => console.error(chalk.red('[Error] ' + reason)));
+};
 
 function getConfigArgs(args: BuildArgs): Partial<BuildArgs> {
 	const { locale, messageBundles, supportedLocales, watch } = args;
@@ -49,6 +72,13 @@ function watch(config: any, options: WebpackOptions, args: BuildArgs): Promise<a
 	const compiler = webpack(config);
 	const server = new WebpackDevServer(compiler, options);
 
+	if (args.cssModules) {
+		gaze(filesPattern, function(this: any, err: any) {
+			this.on('changed', (filepath: string) => writeFile(filepath, true));
+			this.on('added', (filepath: string) => writeFile(filepath, true));
+		});
+	}
+
 	return new Promise((resolve, reject) => {
 		const port = args.port || 9999;
 		server.listen(port, '127.0.0.1', (err: Error) => {
@@ -63,6 +93,7 @@ function watch(config: any, options: WebpackOptions, args: BuildArgs): Promise<a
 
 function compile(config: any, options: WebpackOptions): Promise<any> {
 	const compiler = webpack(config);
+
 	return new Promise((resolve, reject) => {
 		compiler.run((err: any, stats: any) => {
 			if (err) {
@@ -81,6 +112,11 @@ const command: Command = {
 		helper.yargs.option('w', {
 			alias: 'watch',
 			describe: 'watch and serve'
+		});
+
+		helper.yargs.option('c', {
+			alias: 'css-modules',
+			describe: 'generate typings for css module files'
 		});
 
 		helper.yargs.option('p', {
@@ -120,6 +156,20 @@ const command: Command = {
 			}
 		};
 		const configArgs = getConfigArgs(args);
+
+		if (args.cssModules) {
+			console.log('Generating CSS Module typings');
+			glob(filesPattern, null, (err: any, files: any) => {
+				if (err) {
+					console.error(err);
+					return;
+				}
+				if (!files || !files.length) {
+					return;
+				};
+				files.forEach(writeFile);
+			});
+		}
 
 		if (args.watch) {
 			return watch(config(configArgs), options, args);
